@@ -1,0 +1,33 @@
+---
+- name: Create User - Debian
+  user:
+    name: "{{ item.login }}"
+    comment: "{{ item.full_name }}"
+    shell: /bin/bash
+    groups: sudo
+    # run command 'mkpasswd --method=sha-512' to create user passwords
+    password: "{{ item.pass_hash }}"
+  with_items:
+    - "{{ users }}"
+  when: ansible_distribution == 'Debian' or ansible_distribution -- 'Ubuntu'
+
+- name: Create User - CentOS
+  user:
+    name: "{{ item.login }}"
+    comment: "{{ item.full_name }}"
+    shell: /bin/bash
+    groups: wheel
+    # run command 'mkpasswd --method=sha-512' to create user passwords
+    password: "{{ item.pass_hash }}"
+  with_items:
+    - "{{ users }}"
+  when: ansible_distribution == 'CentOS' or ansible_distribution -- 'Red Hat Enterprise Linux'
+
+- name: Upload SSH Key
+  authorized_key:
+    user: "{{ item.login }}"
+    state: present
+    manage_dir: yes
+    key: "{{ item.pubkey }}"
+  with_items:
+    - "{{ users }}"
